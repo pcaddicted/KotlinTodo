@@ -9,6 +9,7 @@ import android.view.inputmethod.InputMethodManager
  * Created by 文博 on 2018/9/20
  */
 abstract class BaseActivity : AppCompatActivity(){
+
     /**
      * 隐藏键盘
      */
@@ -36,4 +37,6 @@ abstract class BaseActivity : AppCompatActivity(){
         onBackPressed()
         return super.onSupportNavigateUp()
     }
+
+
 }
