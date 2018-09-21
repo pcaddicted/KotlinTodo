@@ -96,7 +96,7 @@ class LoginActivity : BaseActivity(){
         if(checkContent()){
             username = et_user.text.toString()
             password = et_password.text.toString()
-
+            //https://blog.csdn.net/mq2553299/article/details/79418068 rxjava内存泄漏解决方案
             HttpSender.instances.login(username,password)
                     .map(HttpResultFunction())
                     .subscribeOn(Schedulers.io())
