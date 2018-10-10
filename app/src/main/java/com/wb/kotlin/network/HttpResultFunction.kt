@@ -1,6 +1,7 @@
 package com.wb.kotlin.network
 
 import com.wb.kotlin.bean.HttpResult
+import com.wb.kotlin.toast
 import io.reactivex.functions.Function
 
 /**
