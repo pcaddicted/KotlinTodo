@@ -4,7 +4,12 @@ import android.content.Intent
 import android.graphics.drawable.Drawable
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.v4.app.FragmentTransaction
 import android.support.v7.app.ActionBarDrawerToggle
+import android.view.Menu
+import android.view.MenuItem
+import android.view.View
+import android.widget.AdapterView
 import android.widget.ImageView
 import android.widget.TextView
 import com.bumptech.glide.Glide
@@ -21,6 +26,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var glide: ViewTarget<ImageView, Drawable>
     private val username: String by Preferences(Config.USERNAME_KEY, "")
+
     var currentIndex = 0   // 当前Fragment
     var doneFragment: MainFragment? = null
     var notDoFragment: MainFragment? = null
@@ -33,9 +39,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initView() {
+
         toolbar.run {
             setSupportActionBar(this)
-//            supportActionBar!!.setDisplayHomeAsUpEnabled(true);//左侧添加一个默认的返回图标
             supportActionBar!!.setDisplayShowTitleEnabled(false)
         }
 
@@ -73,7 +79,127 @@ class MainActivity : AppCompatActivity() {
                 return@setNavigationItemSelectedListener true
             }
         }
+        bottom_nav.run {
+            setOnNavigationItemSelectedListener {
+                setFragment(it.itemId)
+                log("进入")
+                return@setOnNavigationItemSelectedListener when(it.itemId){
+                    R.id.nav_done -> {
+                        currentIndex = R.id.nav_done
+                        spinner.setSelection(doneFragment?.currentType ?: Config.TYPE_0)
+                        true
+                    }
+                    R.id.nav_notdo -> {
+                        currentIndex = R.id.nav_notdo
+                        spinner.setSelection(notDoFragment?.currentType ?: Config.TYPE_0)
+                        true
+                    }
+                    else -> false
+                }
+            }
+            selectedItemId = R.id.nav_done
+        }
 
+        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onNothingSelected(p0: AdapterView<*>?) {
+            }
+
+            override fun onItemSelected(p0: AdapterView<*>?, p1: View?, p2: Int, p3: Long) {
+                when (currentIndex) {
+                    R.id.nav_done -> {
+                        doneFragment?.run {
+                            if (currentType != p2) {
+                                currentType = p2
+                                loadData()
+                            }
+                        }
+                    }
+                    R.id.nav_notdo -> {
+                        notDoFragment?.run {
+                            if (currentType != p2) {
+                                currentType = p2
+                                loadData()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun setFragment(index: Int) {
+
+        supportFragmentManager.beginTransaction().apply {
+            doneFragment ?: run {
+                MainFragment.newInstance(true).run {
+                    doneFragment = this
+                    add(R.id.frame_layout, this)
+                }
+            }
+            notDoFragment ?: run {
+                MainFragment.newInstance(false).run {
+                    notDoFragment = this
+                    add(R.id.frame_layout, this)
+                }
+            }
+
+            hideFragment(this)
+
+            when (index) {
+                R.id.nav_done -> {
+                    doneFragment?.run {
+                        show(this)
+                    }
+                }
+                R.id.nav_notdo -> {
+                    notDoFragment?.run {
+                        show(this)
+                    }
+                }
+            }
+        }.commit()
+    }
+
+    private fun hideFragment(fragmentTransaction: FragmentTransaction) {
+        doneFragment?.run {
+            fragmentTransaction.hide(this)
+        }
+        notDoFragment?.run {
+            fragmentTransaction.hide(this)
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        glide.onStart()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        glide.onStop()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        glide.onDestroy()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_main, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
+        menu?.findItem(R.id.menu_add)?.isVisible = currentIndex != R.id.nav_done
+        invalidateOptionsMenu()
+        return super.onPrepareOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        if (item?.itemId == R.id.menu_add) {
+            startActivityForResult(Intent(this, AddActivity::class.java), Config.MAIN_ADD_REQUEST_CODE)
+        }
+        return super.onOptionsItemSelected(item)
     }
 
 }
